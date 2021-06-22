@@ -1,4 +1,4 @@
-## Prove of concept
+## Implementing Asynchronous Request-Reply using Redis PubSub
 ## Stack used
   - Go 1.15+
   - Echo Framework v3
