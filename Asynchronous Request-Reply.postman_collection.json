@@ -1,0 +1,89 @@
+{
+	"info": {
+		"_postman_id": "b4ee3ed1-19d4-40ff-b6b8-9e3f059df879",
+		"name": "Asynchronous Request-Reply",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Get Members",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var resp = JSON.parse(responseBody)",
+							"postman.setEnvironmentVariable(\"reqId\", resp.data.request_id)",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8082/v1/members/entity",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8082",
+					"path": [
+						"v1",
+						"members",
+						"entity"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Request Status",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8082/v1/members/entity/status/{{reqId}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8082",
+					"path": [
+						"v1",
+						"members",
+						"entity",
+						"status",
+						"{{reqId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Download",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8082/v1/members/entity/download/{{reqId}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8082",
+					"path": [
+						"v1",
+						"members",
+						"entity",
+						"download",
+						"{{reqId}}"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

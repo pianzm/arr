@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"io/ioutil"
 	"log"
+	"os"
 	"time"
 
 	redisConf "github.com/pianzm/arr/config/redis"
@@ -28,7 +30,7 @@ func subscriber(redisClient redisConf.Client, uc usecase.MemberUsecase) {
 
 	for msg := range topic.Channel() {
 		if err := process(msg.Payload, uc); err != nil {
-			log.Println("err: ", err.Error())
+			log.Println("err processing: ", err.Error())
 		}
 	}
 }
@@ -37,8 +39,8 @@ func process(payload string, uc usecase.MemberUsecase) error {
 	log.Println("going to sleep..")
 
 	// mocking long running process
-	// 30 second
-	time.Sleep(30000 * time.Millisecond)
+	// 10 second
+	time.Sleep(10000 * time.Millisecond)
 
 	log.Println("wake up from sleep..")
 	model := model.QueueStatus{}
@@ -55,11 +57,23 @@ func process(payload string, uc usecase.MemberUsecase) error {
 	}
 
 	// do some processing
-	model.FilePath = "/tmp/somefile.txt"
+	file, err := ioutil.TempFile(os.TempDir(), "app-*.csv")
+	if err != nil {
+		return err
+	}
+	text := []byte(`some long running processing result`)
+	if _, err = file.Write(text); err != nil {
+		return err
+	}
+	if err := file.Close(); err != nil {
+		return err
+	}
+
+	model.FilePath = file.Name()
 	model.Completed = true
-	log.Println("set the status to completed..")
+	log.Printf("set the status to completed with path %s\n", file.Name())
 	if err := uc.SetStatus(context.Background(), &model); err != nil {
-		return nil
+		return err
 	}
 
 	return nil

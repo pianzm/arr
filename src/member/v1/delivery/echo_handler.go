@@ -22,7 +22,7 @@ func NewHandler(uc usecase.MemberUsecase) *HTTPHandler {
 func (h *HTTPHandler) Mount(group *echo.Group) {
 	group.GET("", h.GetMembers)
 	group.GET("/status/:reqId", h.getStatus)
-	group.GET("/download", h.download)
+	group.GET("/download/:reqId", h.download)
 }
 
 func (h *HTTPHandler) GetMembers(c echo.Context) error {
@@ -59,5 +59,13 @@ func (h *HTTPHandler) getStatus(c echo.Context) error {
 }
 
 func (h *HTTPHandler) download(c echo.Context) error {
-	return nil
+	reqID := c.Param("reqId")
+	result, err := h.MemberUsecase.GetStatus(c.Request().Context(), reqID)
+	if err != nil {
+		return helper.NewJSONResponse(http.StatusBadRequest, "failed get key from redis").JSON(c)
+	}
+	if result.FilePath == "" {
+		return helper.NewJSONResponse(http.StatusBadRequest, "current task is still being process").JSON(c)
+	}
+	return c.File(result.FilePath)
 }
