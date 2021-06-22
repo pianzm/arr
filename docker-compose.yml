@@ -1,0 +1,16 @@
+version: '2.1'
+
+services:
+  redis:
+    image: 'redis:latest'
+    ports: 
+      - 6379:6379
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+
+  member:
+    image: member
+    ports: 
+        - 8081:8081
+    depends_on: 
+      - redis
