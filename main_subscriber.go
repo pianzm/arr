@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"encoding/csv"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -36,35 +38,38 @@ func subscriber(redisClient redisConf.Client, uc usecase.MemberUsecase) {
 }
 
 func process(payload string, uc usecase.MemberUsecase) error {
-	log.Println("going to sleep..")
-
-	// mocking long running process
-	// 10 second
-	time.Sleep(10000 * time.Millisecond)
-
-	log.Println("wake up from sleep..")
+	now := time.Now()
+	ctx := context.Background()
 	model := model.QueueStatus{}
 	if err := json.Unmarshal([]byte(payload), &model); err != nil {
 		return err
 	}
+	log.Printf("start processing requestID %s, ", model.RequestID)
 
-	currentStatus, err := uc.GetStatus(context.Background(), model.RequestID)
+	currentStatus, err := uc.GetStatus(ctx, model.RequestID)
 	if err != nil {
 		return err
 	}
 	if currentStatus.Completed {
 		return nil
 	}
-
-	// do some processing
-	file, err := ioutil.TempFile(os.TempDir(), "app-*.csv")
+	members, total, err := uc.GetAll(ctx)
 	if err != nil {
 		return err
 	}
-	text := []byte(`some long running processing result`)
-	if _, err = file.Write(text); err != nil {
+	fileName := fmt.Sprintf("app-*-%d.csv", total)
+
+	file, err := ioutil.TempFile(os.TempDir(), fileName)
+	if err != nil {
 		return err
 	}
+	writer := csv.NewWriter(file)
+	defer writer.Flush()
+
+	if err := writer.WriteAll(members); err != nil {
+		return err
+	}
+
 	if err := file.Close(); err != nil {
 		return err
 	}
@@ -75,6 +80,8 @@ func process(payload string, uc usecase.MemberUsecase) error {
 	if err := uc.SetStatus(context.Background(), &model); err != nil {
 		return err
 	}
+	ellapse := time.Since(now)
+	log.Printf("completed in %f ms", ellapse.Seconds())
 
 	return nil
 }

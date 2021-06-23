@@ -8,9 +8,25 @@ services:
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
 
+  postgres96:
+    image: postgres:9.6-alpine
+    volumes:
+        - postgresql-data:/var/lib/postgresql/data
+        - ./schema/create_tables.sql:/docker-entrypoint-initdb.d/create_tables.sql
+    ports:
+        - 5432:5432
+    environment:
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: postgres
+        POSTGRES_DB: poc
+
   member:
     image: member
     ports: 
         - 8081:8081
     depends_on: 
       - redis
+      - postgres96
+  
+  volumes:
+    postgresql-data:

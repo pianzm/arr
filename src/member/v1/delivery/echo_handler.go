@@ -1,6 +1,7 @@
 package delivery
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/labstack/echo"
@@ -21,6 +22,7 @@ func NewHandler(uc usecase.MemberUsecase) *HTTPHandler {
 
 func (h *HTTPHandler) Mount(group *echo.Group) {
 	group.GET("", h.GetMembers)
+	group.POST("", h.initData)
 	group.GET("/status/:reqId", h.getStatus)
 	group.GET("/download/:reqId", h.download)
 }
@@ -68,4 +70,12 @@ func (h *HTTPHandler) download(c echo.Context) error {
 		return helper.NewJSONResponse(http.StatusBadRequest, "current task is still being process").JSON(c)
 	}
 	return c.File(result.FilePath)
+}
+
+func (h *HTTPHandler) initData(c echo.Context) error {
+	if err := h.MemberUsecase.InitData(c.Request().Context()); err != nil {
+		log.Println("err: ", err.Error())
+		return helper.NewJSONResponse(http.StatusBadRequest, "failed init data").JSON(c)
+	}
+	return helper.NewJSONResponse(http.StatusOK, "ok").JSON(c)
 }

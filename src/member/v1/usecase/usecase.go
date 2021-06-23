@@ -10,4 +10,6 @@ type MemberUsecase interface {
 	Publish(ctx context.Context, params *model.QueueStatus) error
 	GetStatus(ctx context.Context, requestID string) (*model.QueueStatus, error)
 	SetStatus(ctx context.Context, params *model.QueueStatus) error
+	InitData(ctx context.Context) error
+	GetAll(ctx context.Context) ([][]string, int64, error)
 }
