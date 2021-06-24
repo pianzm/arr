@@ -31,6 +31,7 @@ func subscriber(redisClient redisConf.Client, uc usecase.MemberUsecase) {
 	topic := redisClient.Subscribe(ctx, helper.DownloadChannel)
 
 	for msg := range topic.Channel() {
+		log.Printf("message %+v\n", msg)
 		if err := process(msg.Payload, uc); err != nil {
 			log.Println("err processing: ", err.Error())
 		}

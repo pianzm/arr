@@ -43,6 +43,7 @@ func (h *HTTPHandler) GetMembers(c echo.Context) error {
 	if err := h.MemberUsecase.Publish(c.Request().Context(), &qParam); err != nil {
 		return helper.NewJSONResponse(http.StatusBadRequest, "failed publish message to redis").JSON(c)
 	}
+	c.Response().Header().Add("Retry-After", "30")
 
 	return helper.NewJSONResponse(http.StatusAccepted, "task accepted", response).JSON(c)
 }
